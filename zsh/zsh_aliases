@@ -1,0 +1,43 @@
+# --- vim ---
+alias vim="nvim "
+
+# --- cd ---
+alias cdc="cd ~/code"
+alias cdb="cd ~/bin"
+alias cds="cd ~/bin/scripts"
+alias cdt="cd ~/tmp"
+
+# --- others ---
+alias src="source ~/.zshrc"
+alias less="less -N "
+alias catn="cat -n "
+alias gh="history | grep"
+alias gf="find | grep"
+alias ag="ag -W 100"
+alias v="nvim"
+
+# --- python ---
+alias srcv="source venv/bin/activate"
+alias pytest-d="python -m unittest discover"
+alias pytest="python -m unittest"
+alias pipi="pip install -r requirements.txt"
+alias pipu="pip install --upgrade -r requirements.txt"
+
+# --- docker ---
+alias dps="docker ps -a"
+alias dstart="docker start"
+
+# --- git ---
+alias gits="git status"
+alias gitc="git commit "
+alias gitd="git diff"
+alias gita="git add"
+alias gitd1="git diff HEAD~1"
+alias gitcm="git commit -m"
+alias gitdt="git difftool"
+alias gitco="git checkout"
+alias gitl="git log"
+alias gitlg="git lg"
+alias gitb="git branch"
+alias gitall="git add -A"
+
