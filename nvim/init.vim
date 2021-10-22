@@ -15,27 +15,27 @@ Plug 'Yggdroot/indentline'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'itchyny/lightline.vim'
 Plug 'ctrlpvim/ctrlp.vim'
-Plug 'vim-scripts/mru.vim'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
-Plug 'jiangmiao/auto-pairs'
-Plug 'mileszs/ack.vim'
-Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-Plug 'zchee/deoplete-jedi', { 'do': ':UpdateRemotePlugins' }
-Plug 'davidhalter/jedi-vim'
-Plug 'psf/black'
-Plug 'fisadev/vim-isort'
-Plug 'heavenshell/vim-pydocstring'
+Plug 'psf/black', {'tag': '19.10b0'}
 Plug 'numirias/semshi', { 'do': ':UpdateRemotePlugins' }
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
+Plug 'Numkil/ag.nvim'
 
 call plug#end()
 
 " --- Common Configs ---
 set number rnu
 colorscheme gruvbox
+nnoremap <CR> :noh<CR><CR>
 let g:mapleader = ','
-set noshowmode
+
+" CTRL P
+let g:ctrlp_custom_ignore = 'venv\|typings\|__pycache__'
+
+" --- Timeout ESC ---
+set timeoutlen=1000 ttimeoutlen=0
 
 " --- Surround ---
 vnoremap <leader>1 <esc>`>a)<esc>`<i(<esc>
@@ -43,6 +43,11 @@ vnoremap <leader>2 <esc>`>a]<esc>`<i[<esc>
 vnoremap <leader>3 <esc>`>a}<esc>`<i{<esc>
 vnoremap <leader>4 <esc>`>a"<esc>`<i"<esc>
 vnoremap <leader>5 <esc>`>a'<esc>`<i'<esc>
+
+
+" --- Markdown Preview ---
+
+nmap <leader>P <Plug>MarkdownPreviewToggle
 
 " --- Common leader ---
 nnoremap <leader>w :w<CR>
@@ -52,12 +57,25 @@ nnoremap <leader>q :q<CR>
 nnoremap <leader>b :e#<CR>
 nnoremap <leader>s :source $MYVIMRC<CR>
 
-" --- Sessions ---
-nnoremap <leader>K :mksession! ~/.config/nvim/tempSession.vim<CR>
-nnoremap <leader>k :source ~/.config/nvim/tempSession.vim<CR>
+" --- Prose ---
+function! Prose()
+    map j gj
+    map k gk
+    set textwidth=80
+endfunction
+
+function! Unprose()
+    map j j
+    map k k
+    set textwidth=0
+endfunction
+
+vmap <leader>a <Plug>(coc-codeaction-selected)
+nmap <leader>a <Plug>(coc-codeaction-selected)
+
 
 " --- Common Editing ---
-nnoremap <leader>D vg$hda
+" nnoremap <leader>d v$hda
 
 " --- Vim Tabs ---
 nnoremap <leader>tn :tabnew<CR>
@@ -68,7 +86,6 @@ nnoremap <A-l> :+tabmove<CR>
 nnoremap <A-h> :-tabmove<CR>
 
 " --- Line Highlighting ---
-nnoremap <CR> :noh<CR><CR>
 hi Normal guibg=NONE ctermbg=NONE
 hi LineNr ctermbg=NONE guibg=NONE
 hi NonText ctermbg=NONE guibg=NONE
@@ -102,12 +119,15 @@ let g:indentLine_char = '¦'
 let g:indentLine_enabled = 1
 autocmd Filetype json set conceallevel=0
 autocmd Filetype json let g:indentLine_enabled = 0
+autocmd Filetype dockerfile set conceallevel=0
+autocmd Filetype dockerfile let g:indentLine_enabled = 0
 
 " --- Whitespace ---
 set tabstop=4
 set shiftwidth=4
 set softtabstop=4
 set expandtab
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 
 " --- Lightline ---
 let g:lightline = {
@@ -129,29 +149,44 @@ let g:lightline = {
     \   'coc_info': 'GetCocInfo',
     \   'coc_warn': 'GetCocWarn',
     \   'coc_error': 'GetCocError',
-    \   'git_branch': 'LightlineFugitive'
+    \   'git_branch': 'FugitiveHead'
     \ },
-    \ 'separator': { 'left': '', 'right': '' },
-    \ 'subseparator': { 'left': '', 'right': '' }
     \ }
 
-
-function! LightlineFugitive()
-    if exists('*fugitive#head')
-        let branch = fugitive#head()
-        return branch !=# '' ? ' '.branch : ''
-    endif
-    return ''
-endfunction
 
 autocmd User CocStatusChange,CocDiagnosticChange call lightline#update()
 
 " --- coc vim ---
+let g:coc_global_extensions = ['coc-pairs', 'coc-tsserver', 'coc-pyright', 'coc-json', 'coc-css', 'coc-pydocstring', 'coc-python']
+
+nmap <leader>gd <Plug>(coc-definition)
+nmap <leader>gy <Plug>(coc-type-definition)
+nmap <leader>gi <Plug>(coc-implementation)
+nmap <leader>gr <Plug>(coc-references)
+nmap <leader>rn <Plug>(coc-rename)
+
+nmap <leader>ac :CocAction<CR>
+nmap <leader>qf <Plug>(coc-fix-current)
+
+nnoremap <leader>K :call <SID>show_documentation()<CR>
+
+function! s:show_documentation()
+  if (index(['vim','help'], &filetype) >= 0)
+    execute 'h '.expand('<cword>')
+  elseif (coc#rpc#ready())
+    call CocActionAsync('doHover')
+  else
+    execute '!' . &keywordprg . " " . expand('<cword>')
+  endif
+endfunction
+
 inoremap <silent><expr> <TAB>
       \ pumvisible() ? "\<C-n>" :
       \ <SID>check_back_space() ? "\<TAB>" :
       \ coc#refresh()
 inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 
 function! s:check_back_space() abort
   let col = col('.') - 1
@@ -159,37 +194,38 @@ function! s:check_back_space() abort
 endfunction
 
 function! GetCocError() abort
-    return GetCocDiagnostic('error', 'E')
+    return s:get_coc_diagnostic('error', 'E:')
 endfunction
 
 function! GetCocWarn() abort
-    return GetCocDiagnostic('warning', 'W')
+    return s:get_coc_diagnostic('warning', 'W:')
 endfunction
 
 function! GetCocInfo() abort
-    return GetCocDiagnostic('information', 'I')
+    return s:get_coc_diagnostic('information', 'I:')
 endfunction
 
 function! GetCocHint() abort
-    return GetCocDiagnostic('hint', 'H')
+    return s:get_coc_diagnostic('hint', 'H:')
 endfunction
 
-function! GetCocDiagnostic(key, icon) abort
-    let info = get(b:, 'coc_diagnostic_info', {})
-    if empty(info) | return '' | endif
-    if get(info, a:key, 0)
-        return a:icon . info[a:key]
+function! s:get_coc_diagnostic(key, icon) abort
+    let info = get(b:, 'coc_diagnostic_info', 0)
+    if empty(info) || get(info, a:key, 0) == 0
+        return ''
     endif
-    return ''
+    return printf('%s%d', a:icon, info[a:key])
 endfunction
 
-highlight CocFloating guibg=brown gui=bold
-highlight Pmenu guibg=brown gui=bold
+"highlight CocFloating guibg=brown gui=bold
+"highlight Pmenu guibg=brown gui=bold
 
 nmap <silent> <leader>] <Plug>(coc-diagnostic-next-error)
 nmap <silent> <leader>[ <Plug>(coc-diagnostic-prev-error)
 nmap <silent> <leader>' <Plug>(coc-diagnostic-next)
 nmap <silent> <leader>; <Plug>(coc-diagnostic-prev)
+
+autocmd BufRead,BufNewFile tsconfig.json set filetype=jsonc
 
 " --- Semshi ---
 function! SemshiCustomHighlights()
@@ -198,9 +234,14 @@ endfunction
 autocmd FileType python call SemshiCustomHighlights()
 
 " --- Python Specific ---
-let g:black_linelength = 100
-nnoremap <leader>m :Black<CR>
+nnoremap <leader>m :call FormatPython()<CR>
 nnoremap <leader>pd :Pydocstring<CR>
+nnoremap <leader>r :CocCommand pyright.restartserver<CR>
+
+function! FormatPython()
+    :Black
+    :CocCommand pyright.organizeimports
+endfunction
 
 " --- On Save ---
 function! StripTrailingWhiteSpaces()
