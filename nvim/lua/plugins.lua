@@ -14,7 +14,11 @@ return require('packer').startup(function(use)
                 run = ":MasonUpdate"
             },
             { "williamboman/mason-lspconfig.nvim" },
-            { "j-hui/fidget.nvim",                        config = function() require("fidget").setup() end },
+            {
+                "j-hui/fidget.nvim",
+                config = function() require("fidget").setup() end,
+                tag = "legacy",
+            },
             { "folke/neodev.nvim" },
             { 'WhoIsSethDaniel/mason-tool-installer.nvim' }
         }
@@ -106,13 +110,16 @@ return require('packer').startup(function(use)
     use {
         'lukas-reineke/indent-blankline.nvim',
         config = function()
-            require("indent_blankline").setup {
-                char = '┊',
-                show_trailing_blankline_ident = true
+            local highlight = { "CursorColumn", "Whitespace" }
+            require("ibl").setup {
+                indent = { highlight = highlight, char = "┊" },
+                whitespace = {
+                    highlight = highlight,
+                    remove_blankline_trail = false,
+                },
             }
         end
     }
-
 
     -- Theme
     use {
@@ -165,6 +172,9 @@ return require('packer').startup(function(use)
 
     -- Improved Hover
     use { "ray-x/lsp_signature.nvim" }
+
+    -- Formatter
+    use { 'mhartington/formatter.nvim' }
 
     -- Spell Checker
     use { "jose-elias-alvarez/null-ls.nvim" }
